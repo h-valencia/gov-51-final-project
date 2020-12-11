@@ -1,0 +1,79 @@
+---
+title: "Final Project"
+authors: "Chelsea Marlborough, Hannah Valencia, and Luke Jordan"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(dplyr)
+library(skimr)
+library(ggplot2)
+library(gt)
+library(modelsummary)
+library(tidyverse)
+```
+
+```{r Load Data}
+survey <- read.csv("https://raw.githubusercontent.com/themarshallproject/incarcerated_survey/master/data/incarcerated_survey_responses-marshallproject_slate-march_2019.csv")
+```
+
+```{r Clean Data}
+survey$race <- ifelse(survey$identifies_as_hispanic_or_latinx == TRUE, "Hispanic", 
+                      ifelse(survey$identifies_as_black == TRUE, "Black", "White"))
+
+survey$education <- ifelse(survey$highest_education_level == "High school or GED or less", "High School or less", "Higher Education")
+
+survey$weapons[survey$stance_on_assault_weapons_ban == "Strongly Oppose"] <- 0
+survey$weapons[survey$stance_on_assault_weapons_ban == "Oppose"] <- 0
+survey$weapons[survey$stance_on_assault_weapons_ban == "Undecided"] <- NA
+survey$weapons[survey$stance_on_assault_weapons_ban == "Support"] <- 1
+survey$weapons[survey$stance_on_assault_weapons_ban == "Strongly support"] <- 1
+
+survey$marijuana[survey$stance_on_marijuana_legalization == "Strongly Oppose"] <- 0
+survey$marijuana[survey$stance_on_marijuana_legalization == "Oppose"] <- 0
+survey$marijuana[survey$stance_on_marijuana_legalization == "Undecided"] <- NA
+survey$marijuana[survey$stance_on_marijuana_legalization == "Support"] <- 1
+survey$marijuana[survey$stance_on_marijuana_legalization == "Strongly support"] <- 1
+
+survey$border[survey$stance_on_tightening_border_security == "Strongly Oppose"] <- 0
+survey$border[survey$stance_on_tightening_border_security == "Oppose"] <- 0
+survey$border[survey$stance_on_tightening_border_security == "Undecided"] <- NA
+survey$border[survey$stance_on_tightening_border_security == "Support"] <- 1
+survey$border[survey$stance_on_tightening_border_security == "Strongly support"] <- 1
+
+survey$wage[survey$stance_on_raise_min_wage == "Strongly Oppose"] <- 0
+survey$wage[survey$stance_on_raise_min_wage == "Oppose"] <- 0
+survey$wage[survey$stance_on_raise_min_wage == "Undecided"] <- NA
+survey$wage[survey$stance_on_raise_min_wage == "Support"] <- 1
+survey$wage[survey$stance_on_raise_min_wage == "Strongly support"] <- 1
+
+```
+
+```{r}
+weapons_reg <- lm(data = survey, weapons ~ length_in_this_facility + race + age + education + party + race*length_in_this_facility)
+
+summary(weapons_reg)
+```
+
+```{r}
+marijuana_reg <- lm(data = survey, marijuana ~ length_in_this_facility + race + age + education + party + race*length_in_this_facility)
+
+summary(marijuana_reg)
+```
+
+```{r}
+border_reg <- lm(data = survey, border ~ length_in_this_facility + race + age + education + party + race*length_in_this_facility)
+
+summary(border_reg)
+```
+
+```{r}
+wage_reg <- lm(data = survey, wage ~ length_in_this_facility + race + age + education + party + race*length_in_this_facility)
+
+summary(wage_reg)
+```
+
+
+
