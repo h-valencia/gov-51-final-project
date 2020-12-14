@@ -5,12 +5,12 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE, warning = FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, out.width = "75%")
 
 library(dplyr)
 library(skimr)
 library(ggplot2)
-library(gt)
+library(kableExtra)
 library(modelsummary)
 library(tidyverse)
 ```
@@ -74,8 +74,13 @@ coef_names <- c("(Intercept)" = "Intercept",
                "partyThe Republican party" = "Party: Republican",
                "length_in_this_facilityOver 10 years:raceWhite" = "Incarcerated Over 10 Years * White")
 
-modelsummary(mods, coef_map = coef_names, stars = TRUE, title = "Length Incarcerated, Race, Age, Education Level, and Political Party on Political Issue Stances (from 0 to 1)")
+modelsummary(mods, coef_map = coef_names, stars = TRUE, title = "Length Incarcerated, Race, Age, Education Level, and Political Party on Political Issue Stances (from 0 to 1)", format = "latex") %>%
+  kable_styling(latex_options=c("scale_down", "HOLD_position"))
 ```
+
+
+
+## Plots
 
 ```{r}
 
@@ -93,7 +98,8 @@ barplot(marj3, beside = TRUE,
         ylim = c(0,1),
         legend = c("Against", "Support"),
         xlab = "Prison Time Served",
-        ylab = "Proportion of Votes")
+        ylab = "Proportion of Votes",
+        args.legend=list(x=ncol(marj3) + 2.2, y=max(colSums(marj3))))
 
 ```
 
@@ -113,7 +119,8 @@ barplot(bor3, beside = TRUE,
         ylim = c(0,1),
         legend = c("Against", "Support"),
         xlab = "Prison Time Served",
-        ylab = "Proportion of Votes")
+        ylab = "Proportion of Votes",
+        args.legend=list(x=ncol(bor3) + 2.2, y=max(colSums(bor3))))
 ```
 
 ```{r}
@@ -131,7 +138,8 @@ barplot(wag3, beside = TRUE,
         ylim = c(0,1),
         legend = c("Against", "Support"),
         xlab = "Prison Time Served",
-        ylab = "Proportion of Votes")
+        ylab = "Proportion of Votes",
+        args.legend=list(x=ncol(wag3) + 2.2, y=max(colSums(wag3))))
 ```
 
 ```{r weapons plot}
@@ -150,7 +158,8 @@ barplot(weap3, beside = TRUE,
         ylim = c(0,1), 
         legend = c("Against", "Support"),
         xlab = "Prison Time Served",
-        ylab = "Proportion of Votes")
+        ylab = "Proportion of Votes",
+        args.legend=list(x=ncol(weap3) + 2, y=max(colSums(weap3))))
 
 ```
 
@@ -168,7 +177,8 @@ barplot(weap_ed2, beside = TRUE,
         ylim = c(0,1),
         legend = c("Against", "Support"),
         xlab = "Education Level",
-        ylab = "Proportion of Votes")
+        ylab = "Proportion of Votes",
+        args.legend=list(x=ncol(weap_ed2) + 2, y=max(colSums(weap_ed2))))
 
 ```
 
@@ -187,7 +197,9 @@ barplot(weap_race2, beside = TRUE,
         ylim = c(0,1),
         legend = c("Against", "Support"),
         xlab = "Race",
-        ylab = "Proportion of Votes")
+        ylab = "Proportion of Votes",
+        args.legend=list(x=ncol(weap_race2) + 3, y=max(colSums(weap_race2)))
+        )
 
 ```
 
@@ -205,7 +217,8 @@ barplot(weap_age2, beside = TRUE,
         ylim = c(0,1),
         legend = c("Against", "Support"),
         xlab = "Age Group",
-        ylab = "Proportion of Votes")
+        ylab = "Proportion of Votes",
+        args.legend=list(x=ncol(weap_age2) + 2, y=max(colSums(weap_age2))))
 
 ```
 
@@ -225,7 +238,8 @@ barplot(weap_party2, beside = TRUE,
         legend = c("Against", "Support"),
         xlab = "Political Party",
         ylab = "Proportion of Votes",
-        cex.names = 0.8)
+        cex.names = 0.8,
+        args.legend=list(x=ncol(weap_party2) + 3.5, y=max(colSums(weap_party2))))
 
 ```
 
@@ -251,7 +265,7 @@ barplot(all_together,
 legend("topleft", 
        legend = c("10 Years or Less & Against", "10 Years or Less & Support", "More Than 10 Years & Against", "More Than 10 Years & Support"),
        col = c("violet", "violetred2", "blue", "blue4"),
-       bty = "n", pch=20 , pt.cex = 2, cex = 0.7, horiz = FALSE, inset = c(0.01, 0.05))
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.5, horiz = FALSE, inset = c(0.01, 0.02))
 
 
 ```
@@ -296,7 +310,7 @@ barplot(race_together,
 legend("topleft", 
        legend = c("Black & Against", "Black & Support", "Hispanic & Against","Hispanic & Support", "White & Against", "White & Support"),
        col = c("violet", "violetred2", "blue", "blue4", "mediumpurple1", "purple3"),
-       bty = "n", pch=20 , pt.cex = 2, cex = 0.55, horiz = FALSE, inset = c(0.125, 0.01))
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.5, horiz = FALSE, inset = c(0.125, 0.01))
 
 ```
 
@@ -341,7 +355,7 @@ barplot(ed_together,
 legend("topleft", 
        legend = c("High School or Less & Against", "High School or Less & Support", "Higher Education & Against", "Higher Education  & Support"),
        col = c("violet", "violetred2", "blue", "blue4"),
-       bty = "n", pch=20 , pt.cex = 2, cex = 0.65, horiz = FALSE, inset = c(0.03, 0.01))
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.5, horiz = FALSE, inset = c(0.01, 0.01))
 
 ```
 
@@ -387,7 +401,7 @@ barplot(age_together,
 legend("topleft", 
        legend = c("35 or Younger & Against", "35 or Younger & Support", "36 or Older & Against", "36 or Older & Support"),
        col = c("violet", "violetred2", "blue", "blue4"),
-       bty = "n", pch=20 , pt.cex = 2, cex = 0.7, horiz = FALSE, inset = c(0.05, 0.05))
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.7, horiz = FALSE, inset = c(0.01, 0.01))
 
 ```
 
@@ -430,7 +444,7 @@ barplot(party_together,
 legend("topleft",
        legend = c("Independent & Against", "Independent & Support", "Other & Against", "Other & Support", "Democrat & Against", "Democrat & Support", "Republican & Against", "Republican & Support"),
        col = c("violet", "violetred2", "blue", "blue4", "mediumpurple1", "purple3", "cadetblue1", "dodgerblue2"),
-       bty = "n", pch=20 , pt.cex = 1, cex = 0.5, horiz = FALSE, inset = c(0.008, 0.007))
+       bty = "n", pch=20 , pt.cex = 1, cex = 0.5, horiz = FALSE, inset = c(0.001, 0.001))
 
 ```
 
