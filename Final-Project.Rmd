@@ -1,0 +1,436 @@
+---
+title: "Final Project"
+authors: "Chelsea Marlborough, Hannah Valencia, and Luke Jordan"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(dplyr)
+library(skimr)
+library(ggplot2)
+library(gt)
+library(modelsummary)
+library(tidyverse)
+```
+
+```{r Load Data}
+survey <- read.csv("https://raw.githubusercontent.com/themarshallproject/incarcerated_survey/master/data/incarcerated_survey_responses-marshallproject_slate-march_2019.csv")
+```
+
+```{r Clean Data}
+survey$race <- ifelse(survey$identifies_as_hispanic_or_latinx == TRUE, "Hispanic", 
+                      ifelse(survey$identifies_as_black == TRUE, "Black", "White"))
+
+survey$education <- ifelse(survey$highest_education_level == "High school or GED or less", "High School or less", "Higher Education")
+
+survey$weapons[survey$stance_on_assault_weapons_ban == "Strongly Oppose"] <- 0
+survey$weapons[survey$stance_on_assault_weapons_ban == "Oppose"] <- 0
+survey$weapons[survey$stance_on_assault_weapons_ban == "Undecided"] <- NA
+survey$weapons[survey$stance_on_assault_weapons_ban == "Support"] <- 1
+survey$weapons[survey$stance_on_assault_weapons_ban == "Strongly support"] <- 1
+
+survey$marijuana[survey$stance_on_marijuana_legalization == "Strongly Oppose"] <- 0
+survey$marijuana[survey$stance_on_marijuana_legalization == "Oppose"] <- 0
+survey$marijuana[survey$stance_on_marijuana_legalization == "Undecided"] <- NA
+survey$marijuana[survey$stance_on_marijuana_legalization == "Support"] <- 1
+survey$marijuana[survey$stance_on_marijuana_legalization == "Strongly support"] <- 1
+
+survey$border[survey$stance_on_tightening_border_security == "Strongly Oppose"] <- 0
+survey$border[survey$stance_on_tightening_border_security == "Oppose"] <- 0
+survey$border[survey$stance_on_tightening_border_security == "Undecided"] <- NA
+survey$border[survey$stance_on_tightening_border_security == "Support"] <- 1
+survey$border[survey$stance_on_tightening_border_security == "Strongly support"] <- 1
+
+survey$wage[survey$stance_on_raise_min_wage == "Strongly Oppose"] <- 0
+survey$wage[survey$stance_on_raise_min_wage == "Oppose"] <- 0
+survey$wage[survey$stance_on_raise_min_wage == "Undecided"] <- NA
+survey$wage[survey$stance_on_raise_min_wage == "Support"] <- 1
+survey$wage[survey$stance_on_raise_min_wage == "Strongly support"] <- 1
+
+```
+
+```{r weapons reg}
+weapons_reg <- lm(data = survey, weapons ~ length_in_this_facility + race + age + education + party + race*length_in_this_facility)
+
+marijuana_reg <- lm(data = survey, marijuana ~ length_in_this_facility + race + age + education + party + race*length_in_this_facility)
+
+border_reg <- lm(data = survey, border ~ length_in_this_facility + race + age + education + party + race*length_in_this_facility)
+
+wage_reg <- lm(data = survey, wage ~ length_in_this_facility + race + age + education + party + race*length_in_this_facility)
+```
+
+```{r}
+mods <- list("Support for Assault Weapons" = weapons_reg, "Support for Marijuana Legalization" = marijuana_reg, "Support for Tightening Border Security" = border_reg, "Support for Raising the Minimum Wage" = wage_reg)
+coef_names <- c("(Intercept)" = "Intercept",
+               "length_in_this_facilityOver 10 years" = "Incarcerated Over 10 Years",
+               "raceHispanic" = "Race: Hispanic",
+               "raceWhite" = "Race: White",
+               "age36 or older" = "Age: 36 or Older",
+               "educationHigher Education" = "Higher Education",
+               "partyOther" = "Party: Other",
+               "partyThe Democratic party" = "Party: Democrat",
+               "partyThe Republican party" = "Party: Republican",
+               "length_in_this_facilityOver 10 years:raceWhite" = "Incarcerated Over 10 Years * White")
+
+modelsummary(mods, coef_map = coef_names, stars = TRUE, title = "Length Incarcerated, Race, Age, Education Level, and Political Party on Political Issue Stances (from 0 to 1)")
+```
+
+```{r}
+
+marj1 <- table(survey$marijuana, survey$length_in_this_facility)
+
+marj2 <- na.omit(marj1)
+
+marj3 <- prop.table(marj2, 2)
+
+barplot(marj3, beside = TRUE,
+        col = c("maroon", "maroon1"),
+        border = "white",
+        las = 1,
+        main = "Stance On Legalizing Marijuana",
+        ylim = c(0,1),
+        legend = c("Against", "Support"),
+        xlab = "Prison Time Served",
+        ylab = "Proportion of Votes")
+
+```
+
+```{r}
+
+bor1 <- table(survey$border, survey$length_in_this_facility)
+
+bor2 <- na.omit(bor1)
+
+bor3 <- prop.table(bor2, 2)
+
+barplot(bor3, beside = TRUE,
+        col = c("maroon", "maroon1"),
+        border = "white",
+        las = 1,
+        main = "Stance On Tightening Border Security",
+        ylim = c(0,1),
+        legend = c("Against", "Support"),
+        xlab = "Prison Time Served",
+        ylab = "Proportion of Votes")
+```
+
+```{r}
+wag1 <- table(survey$wage, survey$length_in_this_facility)
+
+wag2 <- na.omit(wag1)
+
+wag3 <- prop.table(wag2, 2)
+
+barplot(wag3, beside = TRUE,
+        col = c("maroon", "maroon1"),
+        border = "white",
+        las = 1,
+        main = "Stance On Increasing Minimum Wage",
+        ylim = c(0,1),
+        legend = c("Against", "Support"),
+        xlab = "Prison Time Served",
+        ylab = "Proportion of Votes")
+```
+
+```{r weapons plot}
+
+weap1 <- table(survey$weapons, survey$length_in_this_facility)
+
+weap2 <- na.omit(weap1)
+
+weap3 <- prop.table(weap2, 2)
+
+barplot(weap3, beside = TRUE,
+        col = c("maroon", "maroon1"),
+        border = "white",
+        las = 1,
+        main = "Stance On Assault Weapons Ban",
+        ylim = c(0,1), 
+        legend = c("Against", "Support"),
+        xlab = "Prison Time Served",
+        ylab = "Proportion of Votes")
+
+```
+
+```{r assault weapon education}
+
+weap_ed <- table(survey$weapons, survey$education)
+
+weap_ed2 <- prop.table(weap_ed, 2)
+
+barplot(weap_ed2, beside = TRUE,
+        col = c("maroon", "maroon1"),
+        border = "white",
+        las = 1,
+        main = "Stance On Banning Assault Weapons",
+        ylim = c(0,1),
+        legend = c("Against", "Support"),
+        xlab = "Education Level",
+        ylab = "Proportion of Votes")
+
+```
+
+
+```{r assault weapons race}
+
+weap_race <- table(survey$weapons, survey$race)
+
+weap_race2 <- prop.table(weap_race, 2)
+
+barplot(weap_race2, beside = TRUE,
+        col = c("maroon", "maroon1"),
+        border = "white",
+        las = 1,
+        main = "Stance On Banning Assault Weapons",
+        ylim = c(0,1),
+        legend = c("Against", "Support"),
+        xlab = "Race",
+        ylab = "Proportion of Votes")
+
+```
+
+```{r assault weapon age}
+
+weap_age <- table(survey$weapons, survey$age)
+
+weap_age2 <- prop.table(weap_age, 2)
+
+barplot(weap_age2, beside = TRUE,
+        col = c("maroon", "maroon1"),
+        border = "white",
+        las = 1,
+        main = "Stance On Banning Assault Weapons",
+        ylim = c(0,1),
+        legend = c("Against", "Support"),
+        xlab = "Age Group",
+        ylab = "Proportion of Votes")
+
+```
+
+
+```{r assault weapons party}
+
+weap_party <- table(survey$weapons, survey$party)
+
+weap_party2 <- prop.table(weap_party, 2)
+
+barplot(weap_party2, beside = TRUE,
+        col = c("maroon", "maroon1"),
+        border = "white",
+        las = 1,
+        main = "Stance On Banning Assault Weapons",
+        ylim = c(0,1),
+        legend = c("Against", "Support"),
+        xlab = "Political Party",
+        ylab = "Proportion of Votes",
+        cex.names = 0.8)
+
+```
+
+
+```{r sentencing plot}
+
+all_together <- matrix(c(weap3, marj3, bor3, wag3), nrow = 4)
+colnames(all_together) <- c("Assault Weapon Ban", "Marijuana Legalization", "Tightening Border Security", "Increasing Minimum Wage")
+rownames(all_together) <- c("10 Years or Less", "10 Years or Less", "More Than 10 Years", "More Than 10 Years")
+
+par(mgp=c(3,2,0))
+barplot(all_together,
+        ylim = c(0,1),
+        beside = TRUE,
+        col = c("violet", "violetred2", "blue", "blue4"),
+        las = 1,
+        names.arg = c("Assault \n Weapon \n Ban", "Marijuana \n Legalization", "Tightening \n Border \n Security", "Increasing \n Minimum \n Wage"),
+        main = "Policy Stance Based on Sentencing",
+        ylab = "Proportion of Votes",
+        xlab = "Topic",
+        cex.axis = 0.75,
+        cex.names = 0.8)
+legend("topleft", 
+       legend = c("10 Years or Less & Against", "10 Years or Less & Support", "More Than 10 Years & Against", "More Than 10 Years & Support"),
+       col = c("violet", "violetred2", "blue", "blue4"),
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.7, horiz = FALSE, inset = c(0.01, 0.05))
+
+
+```
+
+```{r race props}
+
+race_wage <- table(survey$wage, survey$race)
+
+race_wprop <- prop.table(race_wage, 2)
+
+race_weap <- table(survey$weapons, survey$race)
+
+race_weapprop <- prop.table(race_weap, 2)
+
+race_marijuana <- table(survey$marijuana, survey$race)
+
+race_mprop <- prop.table(race_marijuana, 2)
+
+race_bord <- table(survey$border, survey$race)
+
+race_bprop <- prop.table(race_bord, 2)
+
+
+race_together <- matrix(c(race_weapprop, race_mprop, race_bprop, race_wprop), nrow = 6)
+
+```
+
+```{r race plot}
+
+par(mgp=c(3,2,0))
+barplot(race_together,
+        ylim = c(0,1),
+        beside = TRUE,
+        col = c("violet", "violetred2", "blue", "blue4", "mediumpurple1", "purple3"),
+        las = 1,
+        names.arg = c("Assault \n Weapon \n Ban", "Marijuana \n Legalization", "Tightening \n Border \n Security", "Increasing \n Minimum \n Wage"),
+        main = "Policy Stance Based on Race",
+        ylab = "Proportion of Votes",
+        xlab = "Topic",
+        cex.axis = 0.75,
+        cex.names = 0.8)
+legend("topleft", 
+       legend = c("Black & Against", "Black & Support", "Hispanic & Against","Hispanic & Support", "White & Against", "White & Support"),
+       col = c("violet", "violetred2", "blue", "blue4", "mediumpurple1", "purple3"),
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.55, horiz = FALSE, inset = c(0.125, 0.01))
+
+```
+
+
+```{r education prop}
+
+ed_wage <- table(survey$wage, survey$education)
+
+ed_wprop <- prop.table(ed_wage, 2)
+
+ed_weap <- table(survey$weapons, survey$education)
+
+ed_weapprop <- prop.table(ed_weap, 2)
+
+ed_marij <- table(survey$marijuana, survey$education)
+
+ed_mprop <- prop.table(ed_marij, 2)
+
+ed_bord <- table(survey$border, survey$education)
+
+ed_bprop <- prop.table(ed_bord, 2)
+
+ed_together <- matrix(c(ed_weapprop, ed_mprop, ed_bprop, ed_wprop), nrow = 4)
+
+```
+
+
+```{r education plot}
+
+par(mgp=c(3,2,0))
+barplot(ed_together,
+        ylim = c(0,1),
+        beside = TRUE,
+        col = c("violet", "violetred2", "blue", "blue4"),
+        las = 1,
+        names.arg = c("Assault \n Weapon \n Ban", "Marijuana \n Legalization", "Tightening \n Border \n Security", "Increasing \n Minimum \n Wage"),
+        main = "Policy Stance Based on Education",
+        ylab = "Proportion of Votes",
+        xlab = "Topic",
+        cex.axis = 0.75,
+        cex.names = 0.8)
+legend("topleft", 
+       legend = c("High School or Less & Against", "High School or Less & Support", "Higher Education & Against", "Higher Education  & Support"),
+       col = c("violet", "violetred2", "blue", "blue4"),
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.65, horiz = FALSE, inset = c(0.03, 0.01))
+
+```
+
+
+```{r ages props}
+
+age_wage <- table(survey$wage, survey$age)
+
+age_wprop <- prop.table(age_wage, 2)
+
+age_weap <- table(survey$weapons, survey$age)
+
+age_weapprop <- prop.table(age_weap, 2)
+
+age_marij <- table(survey$marijuana, survey$age)
+
+age_mprop <- prop.table(age_marij, 2)
+
+age_bord <- table(survey$border, survey$age)
+
+age_bprop <- prop.table(age_bord, 2)
+
+age_together <- matrix(c(age_weapprop, age_mprop, age_bprop, age_wprop), nrow = 4)
+
+
+```
+
+
+```{r age plot}
+
+par(mgp=c(3,2,0))
+barplot(age_together,
+        ylim = c(0,1),
+        beside = TRUE,
+        col = c("violet", "violetred2", "blue", "blue4"),
+        las = 1,
+        names.arg = c("Assault \n Weapon \n Ban", "Marijuana \n Legalization", "Tightening \n Border \n Security", "Increasing \n Minimum \n Wage"),
+        main = "Policy Stance Based on Age",
+        ylab = "Proportion of Votes",
+        xlab = "Topic",
+        cex.axis = 0.75,
+        cex.names = 0.8)
+legend("topleft", 
+       legend = c("35 or Younger & Against", "35 or Younger & Support", "36 or Older & Against", "36 or Older & Support"),
+       col = c("violet", "violetred2", "blue", "blue4"),
+       bty = "n", pch=20 , pt.cex = 2, cex = 0.7, horiz = FALSE, inset = c(0.05, 0.05))
+
+```
+
+```{r party props}
+
+party_wage <- table(survey$wage, survey$party)
+
+party_wprop <- prop.table(party_wage, 2)
+
+party_weap <- table(survey$weapons, survey$party)
+
+party_weapprop <- prop.table(party_weap, 2)
+
+party_marij <- table(survey$marijuana, survey$party)
+
+party_mprop <- prop.table(party_marij, 2)
+
+party_bord <- table(survey$border, survey$party)
+
+party_bprop <- prop.table(party_bord, 2)
+
+party_together <- matrix(c(party_weapprop, party_mprop, party_bprop, party_wprop), nrow = 8)
+
+```
+
+```{r party plot}
+
+par(mgp=c(3,2,0))
+barplot(party_together,
+        ylim = c(0,1),
+        beside = TRUE,
+        col = c("violet", "violetred2", "blue", "blue4", "mediumpurple1", "purple3", "cadetblue1", "dodgerblue2"),
+        las = 1,
+        names.arg = c("Assault \n Weapon \n Ban", "Marijuana \n Legalization", "Tightening \n Border \n Security", "Increasing \n Minimum \n Wage"),
+        main = "Policy Stance Based on Party",
+        ylab = "Proportion of Votes",
+        xlab = "Topic",
+        cex.axis = 0.75,
+        cex.names = 0.8)
+legend("topleft",
+       legend = c("Independent & Against", "Independent & Support", "Other & Against", "Other & Support", "Democrat & Against", "Democrat & Support", "Republican & Against", "Republican & Support"),
+       col = c("violet", "violetred2", "blue", "blue4", "mediumpurple1", "purple3", "cadetblue1", "dodgerblue2"),
+       bty = "n", pch=20 , pt.cex = 1, cex = 0.5, horiz = FALSE, inset = c(0.008, 0.007))
+
+```
+
